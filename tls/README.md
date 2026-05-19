@@ -135,6 +135,11 @@ We basically added `.spec.security.tls.enabled: true` and the respective CA. So 
 kubectl apply -f replica-set-tls.yaml
 ```
 
+TLS should be enabled and this should be shown in OpsManager UI for the `replica-set`:  
+
+![Alt text](/img/om-tls-enabled.png)
+
+
 ### Connect via Compass with TLS
 
 The Certificate needs to be used to connect to the replica-set via Compass now.  

@@ -65,12 +65,12 @@ mongodb://mdb-admin:12345678@localhost:27017/admin?authSource=admin&directConnec
 
 ### Deploy Search
 
-When deploying Search with MCK, it will also enable it in the database.  
+When deploying Search with MCK, it will automatically enable Search and Vector Search in the database.  
 
-We will deploy:  
+#### We will deploy:
 - 3 Search members (for high-availability)
 - 1 Envoy LoadBalancer to balance the traffic between the Search pods
-- LoadBalancer Server and Client TLS certificates
+- TLS certificates (Server and Client) for the LoadBalancer 
 
 For this, you need to run:  
 
@@ -85,7 +85,7 @@ Connect to the `mongodb-tools-pod`:
 kubectl exec -n mongodb-operator -it mongodb-tools-pod -- sh
 ```
 
-Connect to the primary member of the MongoDB Database (to be able to `write`) and with `admin` user using TLS:
+Connect to the primary member of the MongoDB Database (to be able to `write`) and with `admin` user (using TLS):
 ```
 mongosh \
   --username mdb-admin \
@@ -155,19 +155,6 @@ See the [documentation](https://www.mongodb.com/docs/kubernetes/current/tutorial
 
 An example of a result for Vector Search using Compass:
 ![Alt text](/img/compass-search-result.png)  
-
-
-## Enable TLS in Search
-
-Also let's enable TLS for Search:  
-
-```
-kubectl apply -f search-tls.yaml
-```
-
-Then TLS should be enabled and this should be shown in OpsManager UI for the `replica-set`:  
-
-![Alt text](/img/om-tls-enabled.png)
 
 
 ## Enable Auto Embeddings (optional)

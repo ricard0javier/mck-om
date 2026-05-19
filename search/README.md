@@ -6,6 +6,7 @@ If you've followed [these steps](https://github.com/vinilage/mck-om/tree/main) y
 - [OpsManager deployed](https://github.com/vinilage/mck-om/tree/main)
 - [A replica-set deployed](https://github.com/vinilage/mck-om/blob/main/replica-set/README.md) 
 - [SCRUM authentication enabled and database users created](https://github.com/vinilage/mck-om/blob/main/user/README.md)
+- [TLS is enabled](https://github.com/vinilage/mck-om/blob/main/tls/README.md)
 
 ## Import sample data to the local database
 
@@ -31,11 +32,19 @@ Download the sample data from the internet to the `tmp` folder inside of the pod
 curl -fSL https://atlas-education.s3.amazonaws.com/sample_mflix.archive -o /tmp/sample_mflix.archive
 ```
 
-Import sample data to the local database (replica-set):
+Copy the local certificate `tls/ca.pem` to the `tmp` folder:
+
+```
+kubectl cp <your directory>/mck-om/tls/ca.pem \
+  mongodb-operator/mongodb-tools-pod:/tmp/ca.pem \
+  --context k3d-mongodb-mck-cluster
+```
+
+Import sample data to the local database (replica-set) with the TLS certificate:
 
 ```
 mongorestore \
-  --uri="mongodb://mdb-admin:12345678@replica-set-svc:27017/?replicaSet=replica-set&authSource=admin" \
+  --uri="mongodb://mdb-admin:12345678@replica-set-svc.mongodb-operator.svc.cluster.local:27017/?replicaSet=replica-set&authSource=admin&tls=true&tlsCAFile=/tmp/ca.pem" \
   --archive=/tmp/sample_mflix.archive \
   --nsInclude 'sample_mflix.*'
 ```
@@ -47,7 +56,7 @@ To connect to the replica set from outside the Kubernetes cluster, we need to fo
 kubectl port-forward -n mongodb-operator svc/replica-set-svc 27017:27017
 ```
 
-Connect with Compass with the following connection string:
+Connect with Compass with the following connection string (remember to use the TLS `ca.pem` certificate):
 ```
 mongodb://mdb-admin:12345678@localhost:27017/admin?authSource=admin&directConnection=true
 ```
@@ -56,10 +65,17 @@ mongodb://mdb-admin:12345678@localhost:27017/admin?authSource=admin&directConnec
 
 ### Deploy Search
 
-When deploying Search with MCK, it will also enable it in the database:
+When deploying Search with MCK, it will also enable it in the database.  
+
+We will deploy:  
+- 3 Search members (for high-availability)
+- 1 Envoy LoadBalancer to balance the traffic between the Search pods
+- LoadBalancer Server and Client TLS certificates
+
+For this, you need to run:  
 
 ```
-kubectl apply -f search.yaml
+kubectl apply -f search-tls.yaml
 ```
 
 ### Create a Search index
@@ -69,12 +85,14 @@ Connect to the `mongodb-tools-pod`:
 kubectl exec -n mongodb-operator -it mongodb-tools-pod -- sh
 ```
 
-Connect to the primary member of the MongoDB Database (to be able to `write`) and with `admin` user:
+Connect to the primary member of the MongoDB Database (to be able to `write`) and with `admin` user using TLS:
 ```
 mongosh \
   --username mdb-admin \
   --password 12345678 \
   --authenticationDatabase admin \
+  --tls \
+  --tlsCAFile /tmp/ca.pem \
   "mongodb://replica-set-0.replica-set-svc.mongodb-operator.svc.cluster.local:27017,replica-set-1.replica-set-svc.mongodb-operator.svc.cluster.local:27017,replica-set-2.replica-set-svc.mongodb-operator.svc.cluster.local:27017/?replicaSet=replica-set"
 ```
 
@@ -138,8 +156,19 @@ See the [documentation](https://www.mongodb.com/docs/kubernetes/current/tutorial
 An example of a result for Vector Search using Compass:
 ![Alt text](/img/compass-search-result.png)  
 
-## Continue...
-- [Enable TLS and Create Certificates](https://github.com/vinilage/mck-om/blob/main/tls/README.md)
+
+## Enable TLS in Search
+
+Also let's enable TLS for Search:  
+
+```
+kubectl apply -f search-tls.yaml
+```
+
+Then TLS should be enabled and this should be shown in OpsManager UI for the `replica-set`:  
+
+![Alt text](/img/om-tls-enabled.png)
+
 
 ## Enable Auto Embeddings (optional)
 

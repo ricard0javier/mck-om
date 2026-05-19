@@ -48,4 +48,4 @@ You will see something like this:
 ![Alt text](/img/compass.png)
 
 ## Continue...
-- [Deploy Search & Vector Search](https://github.com/vinilage/mck-om/blob/main/search/README.md)
+- [Enable TLS](https://github.com/vinilage/mck-om/blob/main/tls/README.md)

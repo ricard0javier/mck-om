@@ -144,14 +144,6 @@ Find the `ca.pem` generated file. The connection should work!
 
 ![Alt text](/img/compass-tls.png)
 
-## Enable TLS in Search
+## Continue...
+- [Deploy Search & Vector Search](https://github.com/vinilage/mck-om/blob/main/search/README.md)
 
-Also let's enable TLS for Search:  
-
-```
-kubectl apply -f search-tls.yaml
-```
-
-Then TLS should be enabled and this should be shown in OpsManager UI for the `replica-set`:  
-
-![Alt text](/img/om-tls-enabled.png)
